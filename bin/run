@@ -1,7 +1,3 @@
 #!/bin/sh -e
 
-if [[ -n "$START_COMMAND" ]]; then
-  exec yarn "$START_COMMAND"
-else
-  exec yarn start
-fi
+exec yarn start
