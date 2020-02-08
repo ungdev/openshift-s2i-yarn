@@ -1,68 +1,144 @@
-# S2I Yarn
+NodeJS 12 container image
+===================
 
-## Prise en main
+This container image includes Node.JS 12 as a [S2I](https://github.com/openshift/source-to-image) base image for your Node.JS 12 applications.
+Users can choose between RHEL, CentOS and Fedora based images.
+The RHEL images are available in the [Red Hat Container Catalog](https://access.redhat.com/containers/),
+the CentOS images are available on [Podman Hub](https://hub.docker.com/r/centos/),
+and the Fedora images are available in [Fedora Registry](https://registry.fedoraproject.org/).
+The resulting image can be run using [podman](https://github.com/containers/libpod).
 
-Yarn est un gestionnaire de dépendances alternatif à npm.
-Cette image permet de construire une application yarn à partir des sources
-L'image est surtout très utile pour le déploiement d'images sur OpenShift.
+Note: while the examples in this README are calling `podman`, you can replace any such calls by `docker` with the same arguments
 
+Description
+-----------
 
-## Comment construire l'application ?
+Node.js 12 available as container is a base platform for
+building and running various Node.js 12 applications and frameworks.
+Node.js is a platform built on Chrome's JavaScript runtime for easily building
+fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model
+that makes it lightweight and efficient, perfect for data-intensive real-time applications
+that run across distributed devices.
 
-### En local
+Usage
+---------------------
+For this, we will assume that you are using the `ubi8/nodejs-12 image`, available via `nodejs:12` imagestream tag in Openshift.
+Building a simple [nodejs-sample-app](https://github.com/sclorg/s2i-nodejs-container/tree/master/12/test/test-app) application
+in Openshift can be achieved with the following step:
 
-Il y a 2 options pour récupérer l'image de construction de l'application
-La récupérer sur le Docker Hub ou la construire depuis les sources
+    ```
+    oc new-app nodejs:12~https://github.com/sclorg/s2i-nodejs-container.git --context-dir=12/test/test-app/
+    ```
 
-#### Récupération depuis le Docker Hub
+The same application can also be built using the standalone [S2I](https://github.com/openshift/source-to-image) application on systems that have it available:
+
+    ```
+    $ s2i build https://github.com/sclorg/s2i-nodejs-container.git --context-dir=12/test/test-app/ ubi8/nodejs-12 nodejs-sample-app
+    ```
+
+**Accessing the application:**
 ```
-docker pull ungdev/s2i-yarn
-```
-
-#### Construction depuis les sources
-```
-git clone https://github.com/ungdev/s2i-yarn
-cd s2i-yarn
-docker build -t ungdev/s2i-yarn .
-```
-
-Ensuite, il n'y a plus qu'a construire l'image de l'application
-```
-s2i build <source code path/URL> s2i-yarn <application image>
-docker run <application image>
-```
-
-### Sur OpenShift
-Pour déployer l'application sur un projet OpenShift, il suffit d'exécuter
-```
-oc new-app ungdev/s2i-yarn~<URL du repository>
-```
-
-### Qu'est-ce que l'image exécute
-```
-yarn
-yarn build
-yarn start
+$ curl 127.0.0.1:8080
 ```
 
-### Mettre en place le cache des dépendances
-Pour pouvoir accélérer la construction des applications, il est possible de mettre en cache les dépendances.
+Environment variables
+---------------------
 
-Pour se faire, il suffit de préciser dans la commande `s2i build` le drapeau `--incrementale=true`
+Application developers can use the following environment variables to configure the runtime behavior of this image:
 
-### Le cas des applications en React.js
+**`NODE_ENV`**
+       NodeJS runtime mode (default: "production")
 
-Attention ! Dans le déploiement d'une application en React.js, les variables d'environnement dans le .env doivent être précisés dans le build, car elles sont écrites en dur dans le code lors de la construction de l'application.
+#### NOTE: Define your own "`DEV_MODE`":
 
-Pour pouvoir utiliser des variables d'environnement lors de l'execution de l'application, utiliser [react-env](https://github.com/beam-australia/react-env).
+The following `package.json` example includes a `scripts.dev` entry.  You can define your own custom [`NPM_RUN`](https://docs.npmjs.com/cli/run-script) scripts in your application's `package.json` file.
+
+#### Note: Setting logging output verbosity
+To alter the level of logs output during an `npm install` the npm_config_loglevel environment variable can be set. See [npm-config](https://docs.npmjs.com/misc/config).
+
+Development Mode
+---------------------
+This image supports development mode. This mode can be switched on and off with the environment variable `DEV_MODE`. `DEV_MODE` can either be set to `true` or `false`.
+Development mode supports two features:
+* Hot Deploy
+* Debugging
+
+The debug port can be specified with the environment variable `DEBUG_PORT`. `DEBUG_PORT` is only valid if `DEV_MODE=true`.
+
+A simple example command for running the container in development mode is:
+```
+podman run --env DEV_MODE=true my-image-id
+```
+
+To run the container in development mode with a debug port of 5454, run:
+```
+$ podman run --env DEV_MODE=true DEBUG_PORT=5454 my-image-id
+```
+
+To run the container in production mode, run:
+```
+$ podman run --env DEV_MODE=false my-image-id
+```
+
+By default, `DEV_MODE` is set to `false`, and `DEBUG_PORT` is set to `5858`, however the `DEBUG_PORT` is only relevant if `DEV_MODE=true`.
+
+Hot deploy
+--------------------
+
+As part of development mode, this image supports hot deploy. If development mode is enabled, any souce code that is changed in the running container will be immediately reflected in the running nodejs application.
+
+### Using Podman's exec
+
+To change your source code in a running container, use Podman's [exec](https://github.com/containers/libpod) command:
+```
+$ podman exec -it <CONTAINER_ID> /bin/bash
+```
+
+After you [Podman exec](https://github.com/containers/libpod) into the running container, your current directory is set to `/opt/app-root/src`, where the source code for your application is located.
+
+### Using OpenShift's rsync
+
+If you have deployed the container to OpenShift, you can use [oc rsync](https://docs.openshift.org/latest/dev_guide/copy_files_to_container.html) to copy local files to a remote container running in an OpenShift pod.
+
+#### Warning:
+
+The default behaviour of the s2i-nodejs container image is to run the Node.js application using the command `npm start`. This runs the _start_ script in the _package.json_ file. In developer mode, the application is run using the command `nodemon`. The default behaviour of nodemon is to look for the _main_ attribute in the _package.json_ file, and execute that script. If the _main_ attribute doesn't appear in the _package.json_ file, it executes the _start_ script. So, in order to achieve some sort of uniform functionality between production and development modes, the user should remove the _main_ attribute.
+
+Below is an example _package.json_ file with the _main_ attribute and _start_ script marked appropriately:
+
+```json
+{
+    "name": "node-echo",
+    "version": "0.0.1",
+    "description": "node-echo",
+    "main": "example.js", <--- main attribute
+    "dependencies": {
+    },
+    "devDependencies": {
+        "nodemon": "*"
+    },
+    "engine": {
+        "node": "*",
+        "npm": "*"
+    },
+    "scripts": {
+        "dev": "nodemon --ignore node_modules/ server.js",
+        "start": "node server.js" <-- start script
+    },
+    "keywords": [
+        "Echo"
+    ],
+    "license": "",
+}
+```
+
+#### Note:
+`oc rsync` is only available in versions 3.1+ of OpenShift.
 
 
-### Composition des fichiers
-| Fichiers            | Description                                                  |
-|---------------------|--------------------------------------------------------------|
-| Dockerfile          | Définit l'image de base                                      |
-| bin/assemble        | Script qui construit l'application                           |
-| bin/usage           | Script qui affiche l'usage de l'image                        |
-| bin/run             | Script qui démarre l'application                             |
-| bin/save-artifacts  | Script pour mettre en cache les dépendences                  |
-
+See also
+--------
+Dockerfile and other sources are available on https://github.com/sclorg/s2i-nodejs-container.
+In that repository you also can find another versions of Python environment Dockerfiles.
+Dockerfile for CentOS is called `Dockerfile`, Dockerfile for RHEL7 is called `Dockerfile.rhel7`,
+for RHEL8 it's `Dockerfile.rhel8` and the Fedora Dockerfile is called Dockerfile.fedora.
