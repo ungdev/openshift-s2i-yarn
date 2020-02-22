@@ -29,6 +29,6 @@ RUN chown -R 1000:0 $APP && \
 WORKDIR $HOME
 
 # OpenShift only accepts numeric user
-USER 1000
+USER 1000:0
 
 CMD ["sh", "-c", "$APP/scripts/usage"]
