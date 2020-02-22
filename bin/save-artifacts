@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+# Tar node_modules and print it to stdout
+# Do not print anything else to stdout !
+tar cf - node_modules
