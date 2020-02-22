@@ -50,12 +50,10 @@ Pour pouvoir accélérer la construction des applications, il est possible de me
 
 Pour se faire, il suffit de préciser dans la commande `s2i build` le drapeau `--incrementale=true`
 
-### Le cas des applications en React.js
-
-Attention ! Dans le déploiement d'une application en React.js, les variables d'environnement dans le .env doivent être précisés dans le build, car elles sont écrites en dur dans le code lors de la construction de l'application.
-
-Pour pouvoir utiliser des variables d'environnement lors de l'execution de l'application, utiliser [react-env](https://github.com/beam-australia/react-env).
-
+### Variables d'environnement utilisées
+```
+NODE_ENV=production
+```
 
 ### Composition des fichiers
 | Fichiers            | Description                                                  |

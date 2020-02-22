@@ -15,5 +15,12 @@ fi
 echo "---> Building application from source..."
 
 yarn
-yarn build || echo "Build not found, but continues"
+
+HAS_BUILD=$(node -e "console.log(require('./package.json').scripts.build ? true : false)")
+
+if [ "$HAS_BUILD" == true ]; then
+  echo "---> Building in production mode"
+  yarn build
+fi
+
 yarn cache clean
