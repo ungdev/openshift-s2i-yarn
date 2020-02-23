@@ -3,6 +3,10 @@ language: generic
 services:
   - docker
 
+branches:
+  only:
+  - master
+
 before_install:
   - echo $DOCKER_TOKEN | docker login --username $DOCKER_LOGIN --password-stdin
 
