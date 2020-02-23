@@ -24,3 +24,7 @@ if [ "$HAS_BUILD" == true ]; then
 fi
 
 yarn cache clean
+
+echo "---> Fix permissions"
+chown -R 1000:0 $APP
+chmod -R g=u $APP
