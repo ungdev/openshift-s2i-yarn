@@ -1,4 +1,3 @@
-FROM node:10-alpine
 # APP: Location of the application
 # Home: Location of the application sources
 ENV APP="/opt/app-root" \
