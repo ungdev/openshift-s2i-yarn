@@ -23,6 +23,8 @@ docker pull ungdev/s2i-yarn
 ```
 git clone https://github.com/ungdev/s2i-yarn
 cd s2i-yarn
+echo 'FROM node:alpine' > Dockerfile
+cat Dockerfile.template >> Dockerfile
 docker build -t ungdev/s2i-yarn .
 ```
 
