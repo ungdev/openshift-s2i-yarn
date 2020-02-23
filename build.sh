@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 name='ungdev/openshift-s2i-yarn'
-declare -a tags=(lts-alpine alpine 13-alpine 12-alpine 10-alpine)
+tags=(lts-alpine alpine 13-alpine 12-alpine 10-alpine)
 
 for tag in ${tags[*]}; do
   echo "Create image node:$tag"

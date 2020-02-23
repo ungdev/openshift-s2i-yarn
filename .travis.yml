@@ -11,4 +11,4 @@ before_install:
   - echo $DOCKER_TOKEN | docker login --username $DOCKER_LOGIN --password-stdin
 
 script:
-  - sh build.sh
+  - ./build.sh
