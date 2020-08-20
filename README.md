@@ -1,3 +1,4 @@
+# Archivé. Répo mis à jour sur GitLab https://gitlab.com/ungdev/sia/openshift-s2i-yarn
 # S2I Yarn
 
 ## Prise en main
